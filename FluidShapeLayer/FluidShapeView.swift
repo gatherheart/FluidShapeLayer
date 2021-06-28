@@ -9,10 +9,16 @@ import UIKit
 
 class FluidShapeView: UIView {
 
+    var effectView: CustomIntensityVisualEffectView?
     override func draw(_ rect: CGRect) {
-        super.draw(rect)
         self.drawSecondLayer(rect)
         self.drawFirstLayer(rect)
+        
+        effectView?.removeFromSuperview()
+        let blurEffect = UIBlurEffect(style: .extraLight)
+        self.effectView = CustomIntensityVisualEffectView(effect: blurEffect, intensity: 0.35)
+        effectView?.frame = self.bounds
+        addSubview(effectView!)
     }
     
     private func drawFirstLayer(_ rect: CGRect) {
@@ -36,12 +42,6 @@ class FluidShapeView: UIView {
         path.close()
 
         newLayer.path = path.cgPath
-        
-        let blurEffect = UIBlurEffect(style: .extraLight)
-        let visualEffectView = UIVisualEffectView(effect: blurEffect)
-        visualEffectView.alpha = 0.7
-        visualEffectView.frame = self.bounds
-        self.layer.addSublayer(visualEffectView.layer)
     }
     
     private func drawSecondLayer(_ rect: CGRect) {
@@ -74,4 +74,28 @@ class FluidShapeView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+}
+
+class CustomIntensityVisualEffectView: UIVisualEffectView {
+
+    /// Create visual effect view with given effect and its intensity
+    ///
+    /// - Parameters:
+    ///   - effect: visual effect, eg UIBlurEffect(style: .dark)
+    ///   - intensity: custom intensity from 0.0 (no effect) to 1.0 (full effect) using linear scale
+    init(effect: UIVisualEffect, intensity: CGFloat) {
+        super.init(effect: nil)
+        animator = UIViewPropertyAnimator(duration: 1, curve: .linear) { [unowned self] in
+            self.effect = effect
+        }
+        animator.fractionComplete = intensity
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        fatalError()
+    }
+
+    // MARK: Private
+    private var animator: UIViewPropertyAnimator!
+
 }
